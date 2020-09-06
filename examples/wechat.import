@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+from china_beancount_importers.wechat import WechatImporter
+
+accountDict = {
+    "招商银行(1111)": "Assets:Bank:CMB:C1111",
+    "建设银行(2222)": "Assets:Bank:CCB:C2222",
+    "零钱": "Assets:WeChat",
+    "/": "Assets:WeChat",
+}
+
+CONFIG = [
+    WechatImporter(account_dict=accountDict),
+]

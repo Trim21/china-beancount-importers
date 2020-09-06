@@ -10,20 +10,29 @@ repos:
     rev: e1668fe86af3810fbca72b8653fe478e66a0afdc  # frozen: v3.2.0
     hooks:
       - id: check-case-conflict
+        exclude: .*\.csv
       - id: check-ast
+        exclude: .*\.csv
       - id: check-builtin-literals
+        exclude: .*\.csv
       - id: check-byte-order-marker
+        exclude: .*\.csv
       - id: check-toml
       - id: check-yaml
       - id: check-json
       - id: check-docstring-first
       - id: check-merge-conflict
+        exclude: .*\.csv
       - id: check-added-large-files  # check for file bigger than 500kb
+        exclude: .*\.csv
       - id: debug-statements
       - id: trailing-whitespace
+        exclude: .*\.csv
       - id: mixed-line-ending
         args: [--fix=lf]
+        exclude: .*\.csv
       - id: end-of-file-fixer
+        exclude: .*\.csv
       - id: fix-encoding-pragma
         args: [--remove]
 
