@@ -18,8 +18,8 @@ _COMMENTS_STR = "收款方备注:二维码收款付款方留言:"
 class WechatImporter(importer.ImporterProtocol):
     """An importer for Wechat CSV files."""
 
-    def __init__(self, account_dict: Dict):
-        # print(file_type)
+    def __init__(self, account_dict: Dict, default_posting=None):
+        """"""
         self.accountDict = account_dict
         self.currency = "CNY"
         self.default_set = frozenset({"wechat"})
@@ -45,7 +45,6 @@ class WechatImporter(importer.ImporterProtocol):
     def extract(self, file, existing_entries=None):
         # Open the CSV file and create directives.
         entries = []
-        index = 0
         with open(file.name, encoding="utf-8") as f:
             for _ in range(16):
                 next(f)
@@ -77,7 +76,9 @@ class WechatImporter(importer.ImporterProtocol):
                 if row["当前状态"] == "充值完成":
                     postings.insert(
                         0,
-                        data.Posting(self.file_account(), None, None, None, None, None),
+                        data.Posting(
+                            self.file_account(), -amount, None, None, None, None
+                        ),
                     )
                     narration = "微信零钱充值"
                     payee = None
@@ -92,6 +93,4 @@ class WechatImporter(importer.ImporterProtocol):
                     postings,
                 )
                 entries.append(txn)
-
-        # Insert a final balance check.
         return entries
