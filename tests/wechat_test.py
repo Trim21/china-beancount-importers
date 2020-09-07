@@ -1,6 +1,6 @@
-import os
 import datetime
 from decimal import Decimal
+from os.path import abspath, normpath
 
 from beancount.core.data import Amount, Posting, Transaction
 from beancount.ingest.extract import extract_from_file
@@ -16,8 +16,8 @@ def test_example_config():
 
 def test_extract_as_expected():
     importer = get_importer("examples/wechat.import")
-    fs = os.path.abspath("tests\\fixtures\\wechat\\微信支付账单(20200830-20200906).csv")
-    extracted = extract_from_file(os.path.abspath(fs), importer)
+    fs = normpath(abspath("tests/fixtures/wechat/微信支付账单(20200830-20200906).csv"))
+    extracted = extract_from_file(fs, importer)
     assert extracted == [
         Transaction(
             meta={
