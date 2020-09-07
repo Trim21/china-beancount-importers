@@ -6,7 +6,7 @@ import datetime
 from os import path
 from typing import Dict
 
-from beancount.core import data
+from beancount.core import data, flags
 from dateutil.parser import parse
 from beancount.ingest import importer
 from beancount.core.amount import Amount
@@ -18,11 +18,22 @@ _COMMENTS_STR = "收款方备注:二维码收款付款方留言:"
 class WechatImporter(importer.ImporterProtocol):
     """An importer for Wechat CSV files."""
 
-    def __init__(self, account_dict: Dict, default_posting=None):
-        """"""
-        self.accountDict = account_dict
-        self.currency = "CNY"
+    def __init__(self, account="Assets:WeChat", account_dict: Dict = None):
+        """
+
+        :param account: 微信本身的账户
+        :param account_dict: 支付方式和beancount账户的对应
+        """
+        self.account = account
+        self.accountDict = account_dict or {}
+        self.accountDict.update(
+            {
+                "零钱": self.account,
+                "/": self.account,
+            }
+        )
         self.default_set = frozenset({"wechat"})
+        self.currency = "CNY"
 
     def identify(self, file):
         # Match if the filename is as downloaded and the header has the unique
@@ -33,7 +44,7 @@ class WechatImporter(importer.ImporterProtocol):
         return "wechat.{}".format(path.basename(file.name))
 
     def file_account(self, _=None):
-        return "Assets:WeChat"
+        return self.account
         # return None
 
     def file_date(self, file):
@@ -49,14 +60,15 @@ class WechatImporter(importer.ImporterProtocol):
             for _ in range(16):
                 next(f)
             for index, row in enumerate(csv.DictReader(f)):
-                meta = data.new_metadata(file.name, index)
+                flag = flags.FLAG_WARNING
                 dt = parse(row["交易时间"])
-                meta["time"] = str(dt.time())
-                raw_amount = D(row["金额(元)"].lstrip("¥"))
-                isExpense = True if (row["收/支"] == "支出" or row["收/支"] == "/") else False
-                if isExpense:
-                    raw_amount = -raw_amount
-                amount = Amount(raw_amount, self.currency)
+                meta = data.new_metadata(
+                    file.name, index, kvlist={"time": str(dt.time())}
+                )
+                amount = Amount(D(row["金额(元)"].lstrip("¥")), self.currency)
+                if row["收/支"] in {"支出", "/"}:
+                    # 支出
+                    amount = -amount
                 payee = row["交易对方"]
                 narration: str = row["商品"]
                 if narration.startswith(_COMMENTS_STR):
@@ -65,27 +77,24 @@ class WechatImporter(importer.ImporterProtocol):
                     narration = ""
                 account_1_text = row["支付方式"]
                 account_1 = "Assets:FIXME"
-                # print(raw_amount,narration,account_1_text,account_2_text)
                 for asset_k, asset_v in self.accountDict.items():
-                    if account_1_text.find(asset_k) != -1:
-                        # print(asset_k, asset_v)
+                    if asset_k in account_1_text:
                         account_1 = asset_v
+                        flag = flags.FLAG_OKAY
 
                 postings = [data.Posting(account_1, amount, None, None, None, None)]
 
                 if row["当前状态"] == "充值完成":
                     postings.insert(
                         0,
-                        data.Posting(
-                            self.file_account(), -amount, None, None, None, None
-                        ),
+                        data.Posting(self.account, -amount, None, None, None, None),
                     )
                     narration = "微信零钱充值"
                     payee = None
                 txn = data.Transaction(
                     meta,
                     dt.date(),
-                    self.FLAG,
+                    flag,
                     payee,
                     narration,
                     self.default_set,
