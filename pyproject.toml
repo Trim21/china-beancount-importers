@@ -16,16 +16,16 @@ python = "^3.6.1"
 beancount = '>=2.3.0,<3.0.0,!=2.3.1'
 
 [tool.poetry.dev-dependencies]
-pre-commit = '==2.7.1'
+pre-commit = '==2.12.1'
 # tests
-coverage = "==5.2.1"
-pytest = "==6.0.1"
-pytest-github-actions-annotate-failures = "==0.1.0"
+coverage = "==5.5"
+pytest = "==6.2.3"
+pytest-github-actions-annotate-failures = "==0.1.2"
 # linter
-mypy = "^0.770"
-flake8 = "3.8.3"
-flake8-comprehensions = "==3.2.3"
-flake8-bugbear = "==20.1.4"
+mypy = "0.812"
+flake8 = "==3.9.1"
+flake8-comprehensions = "==3.4.0"
+flake8-bugbear = "==21.4.3"
 flake8-mutable = "1.2.0"
 
 [tool.isort]
